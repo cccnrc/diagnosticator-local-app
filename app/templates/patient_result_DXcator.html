@@ -1,0 +1,120 @@
+{% extends "base_DXcator.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+
+<style>
+    .AC {
+        background-color: #ccffa6;
+    }
+    .AR {
+        background-color: #ebffdb;
+    }
+    .US {
+        background-color: #dbdbdb;
+    }
+    .RR {
+        background-color: #ffdede;
+    }
+    .RE {
+        background-color: #ffb0b0;
+    }
+    .SE {
+        background-color: #b8c8ff;
+    }
+    .SR {
+        background-color: #d9e1ff;
+    }
+    .IP {
+        background-color: #fffcd9;
+    }
+    .NA {
+        background-color: #ffffff;
+    }
+    .ui-helper-center {
+        text-align: center;
+    }
+
+    td {
+        word-wrap: break-word;         /* All browsers since IE 5.5+ */
+        overflow-wrap: break-word;     /* Renamed property in CSS3 draft spec */
+    }
+
+    table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+</style>
+
+
+
+<div style="display: inline-block; float: right; " >
+  <a href="{{ url_for('main.patient_result' )}}">
+    <button class="btn btn-info" style="border: 1px solid #308eff;">
+      Samples Main Page
+    </button>
+  </a>
+  <a href="{{ url_for('main.gene_result' )}}">
+    <button class="btn btn-info" style="border: 1px solid #308eff; ">
+      Gene Main Page
+    </button>
+  </a>
+</div>
+
+
+<div style="text-align: center; margin-top: 5%; max-width: 100%;">
+  <stream style="font-size: 130%; font-weight: bold;">Samples</stream>
+
+  <table class="table table-hover" >
+
+      <thead class="thead-dark">
+      <tr style="background-color: black; color: white;" >
+          <th class="ui-helper-center">
+              index
+          </th>
+          <th class="ui-helper-center">
+              ID
+          </th>
+          <th class="ui-helper-center">
+              known P/LP
+          </th>
+          <th class="ui-helper-center">
+              P/LP variants
+          </th>
+          <th class="ui-helper-center">
+              tot variants
+          </th>
+        </thead>
+
+        <tbody>
+          {% for sample_name, sample_dict in sampleHTMLdict.items() %}
+          <tr class="{{ sample_dict['status'] }}">
+            <td class="ui-helper-center">
+                {{ loop.index }}
+            </td>
+            <td class="ui-helper-center">
+              <a href="{{ url_for('main.patient_page', sample_name = sample_name ) }}" >
+                <button class="btn btn-info" style="border: 1px solid #308eff; width: 110%; white-space: normal;">
+                  {{ sample_name }}
+                </button>
+              </a>
+            </td>
+            <td class="ui-helper-center">
+                {{ sample_dict[ 'kN' ] }}
+            </td>
+            <td class="ui-helper-center">
+                {{ sample_dict[ 'pN' ] }}
+            </td>
+            <td class="ui-helper-center">
+                {{ sample_dict[ 'varN' ] }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+  </table>
+</div>
+
+
+{% endblock %}

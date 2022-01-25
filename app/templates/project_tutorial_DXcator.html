@@ -1,0 +1,99 @@
+{% extends "base_DXcator.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<style>
+
+  div#external {
+    border: 0px solid #eee;
+    position: relative;
+    text-align: center;
+  }
+  div#external > ul {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
+    position: relative;
+  }
+  div#external:hover > ul {
+    visibility: visible;
+    opacity: 1;
+    font-size: 150%;
+    border-bottom: 3px solid red;
+    border-top: 3px solid red;
+    padding: 2%;
+    text-align: center;
+  }
+  div#external > dl {
+    visibility: visible;
+    opacity: 1;
+    vertical-align: middle;
+  }
+  div#external:hover > dl {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
+  }
+
+  .vertical-center {
+    margin: 0;
+    margin-left: -40%;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    display: inline-block;
+    color: #D40000;
+    font-weight: normal;
+    font-size: 180%;
+    font-family: monospace;
+    max-width: 80%;
+    border: 0px solid blue;
+  }
+
+</style>
+
+
+
+  <div id="external">
+    <dl>
+      <div class="vertical-center">
+        Tutorial <img style="max-width: 4%;" src="{{ url_for( 'static', filename = 'mouse-icon.png') }}"/>
+      </div>
+    </dl>
+    <ul>
+      <stream style="color: #D40000; font-weight: bold;">Congratulations!</stream>
+      <br>
+      You successfully registered on the central server!
+      Welcome in our community :)
+      <br>
+      Let's face now the <stream style="font-weight: bold;">second step</stream>: <stream style="color: #D40000;">project creation</stream>
+      <br>
+      You want to compile each of these fields you see on the left in order to insert details about the files you are going to analyze
+      <br>
+      Then just click the "Submit" button at the bottom
+    </ul>
+  </div>
+
+
+    <!-- my addictions -->
+    <div style="" >
+    <div style="display: inline-block; float: right; " >
+    <div width="100%" style="text-align: right;" >
+        {{ current_user.username }}
+    </div>
+    </div>
+
+
+    <h1>Project:</h1>
+    <div class="row">
+        <div class="col-md-4">
+            {{ wtf.quick_form(form) }}
+        </div>
+    </div>
+
+
+
+
+
+{% endblock %}

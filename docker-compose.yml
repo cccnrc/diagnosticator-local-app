@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  docker-DX-VEP:
+    image: cccnrc/diagnosticator-vep:0.1
+    # image: alpine-vep:0.0
+    container_name: docker-DX-VEP
+    volumes:
+      - DX-UPLOAD:/home/VEP_INPUT
+  docker-DX-ASILO:
+    image: cccnrc/diagnosticator-asilo:0.2
+    # image: asilo:0.0
+    container_name: docker-DX-ASILO
+    volumes:
+      - DX-UPLOAD:/INPUT
+  docker-redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6380:6379"
+  docker-diagnosticator:
+    # build: .
+    image: cccnrc/diagnosticator:0.13
+    container_name: diagnosticator
+    links:
+      - docker-redis
+    environment:
+      - REDIS_URL=redis://docker-redis:6379
+      # - DEVELOPMENT_TESTING=1
+      - UPLOAD_FOLDER=/home/diagnosticator/upload
+      - SERVER_ADDRESS=https://ec2-50-19-50-151.compute-1.amazonaws.com
+    ports:
+      - "9000:5000"
+    expose:
+      - '9000'
+    restart: on-failure
+    volumes:
+      - DX-UPLOAD:/home/diagnosticator/upload
+      - DX-DB:/home/diagnosticator/DB
+  docker-rq-worker:
+    # build: .
+    image: cccnrc/diagnosticator:0.13
+    container_name: rq-worker
+    links:
+      - docker-redis
+    environment:
+      - REDIS_URL=redis://docker-redis:6379/0
+      - UPLOAD_FOLDER=/home/diagnosticator/upload
+    entrypoint: venv/bin/rq
+    command: worker -u redis://docker-redis:6379/0 diagnosticator-tasks
+    volumes:
+      - DX-UPLOAD:/home/diagnosticator/upload
+      - DX-DB:/home/diagnosticator/DB
+
+volumes:
+  DX-UPLOAD:
+  DX-DB:
