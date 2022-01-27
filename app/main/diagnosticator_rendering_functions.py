@@ -1,6 +1,115 @@
 import redis_functions
 from flask import current_app
 
+def get_variant_page_conversion():
+    '''
+        this is to be passed to HTML page to show names instead of abbreviations
+    '''
+    d = ({
+            "genename": "Gene Name",
+            "chr": "Allele Chromosome",
+            "pos": "Allele Position",
+            "ref": "Reference Allele",
+            "alt": "Altered Allele",
+            "1000gp3_ac": "1000 Genomes AC",
+            "1000gp3_af": "1000 Genomes AC",
+            "1000gp3_afr_ac": "1000 Genomes African AC",
+            "1000gp3_afr_af": "1000 Genomes African AF",
+            "1000gp3_amr_ac": "1000 Genomes American AC",
+            "1000gp3_amr_af": "1000 Genomes American AF",
+            "1000gp3_eas_ac": "1000 Genomes East-Asian AC",
+            "1000gp3_eas_af": "1000 Genomes East-Asian AF",
+            "1000gp3_eur_ac": "1000 Genomes European AC",
+            "1000gp3_eur_af": "1000 Genomes European AF",
+            "1000gp3_sas_ac": "1000 Genomes South-Asian AC",
+            "1000gp3_sas_af": "1000 Genomes South-Asian AF",
+            "exac_af_popmax": "1000 Genomes South-Asian AC",
+            "exac_afr_af": "ExAC African AF",
+            "exac_afr_gts": "ExAC African Genotypes",
+            "exac_amr_af": "ExAC American AF",
+            "exac_amr_gts": "ExAC American Genotypes",
+            "exac_eas_af": "ExAC East-Asian AF",
+            "exac_eas_gts": "ExAC East-Asian Genotypes",
+            "exac_fin_af": "ExAC Finnish AF",
+            "exac_fin_gts": "ExAC Finnish Genotypes",
+            "exac_global_af": "ExAC Global AF",
+            "exac_global_gts": "ExAC Global Genotypes",
+            "exac_nfe_af": "ExAC Non-Finnish-European AF",
+            "exac_nfe_gts": "ExAC Non-Finnish-European Genotypes",
+            "exac_oth_af": "ExAC Other AF",
+            "exac_oth_gts": "ExAC Other Genotypes",
+            "exac_sas_af": "ExAC South-Asian AF",
+            "exac_sas_gts": "ExAC South-Asian Genotypes",
+            "gnomad_ex_afr_af": "GnomAD Exome African AF (n: 8,128)",
+            "gnomad_ex_amr_af": "GnomAD Exome Latino AF (n: 17,296)",
+            "gnomad_ex_asj_af": "GnomAD Exome Ashkenazi Jewish AF (n: 5,040)",
+            "gnomad_ex_controls_af": "GnomAD Exome Controls AF (n: 54,704)",
+            "gnomad_ex_controls_afr_af": "GnomAD Exome African Controls AF",
+            "gnomad_ex_controls_amr_af": "GnomAD Exome Latino Controls AF",
+            "gnomad_ex_controls_an": "GnomAD Exome Controls AN",
+            "gnomad_ex_controls_asj_af": "GnomAD Exome Ashkenazi Jewish Controls AF",
+            "gnomad_ex_controls_eas_af": "GnomAD Exome Eas-Asian Controls AF",
+            "gnomad_ex_controls_fin_af": "GnomAD Exome Finnish Controls AF",
+            "gnomad_ex_controls_nfe_af": "GnomAD Exome Non-Finnish-European Controls AF",
+            "gnomad_ex_controls_nhemi": "GnomAD Exome Controls hemizygous",
+            "gnomad_ex_controls_nhet": "GnomAD Exome Controls heterozygous",
+            "gnomad_ex_controls_nhomalt": "GnomAD Exome Controls homozygous altered",
+            "gnomad_ex_controls_sas_af": "GnomAD Exome South-Asian Controls AF",
+            "gnomad_ex_eas_af": "GnomAD Exome East-Asian AF",
+            "gnomad_ex_filter": "GnomAD Exome Filter",
+            "gnomad_ex_fin_af": "GnomAD Finnish AF",
+            "gnomad_ex_global_af": "GnomAD Exome Global AF",
+            "gnomad_ex_global_an": "GnomAD Exome Global AN",
+            "gnomad_ex_global_nhemi": "GnomAD Exome Global hemizygous",
+            "gnomad_ex_global_nhet": "GnomAD Exome Global heterozygous",
+            "gnomad_ex_global_nhomalt": "GnomAD Exome Global homozygous altered",
+            "gnomad_ex_nfe_af": "GnomAD Exome Non-Finnish-European AF",
+            "gnomad_ex_sas_af": "GnomAD Exome South-Asian AF",
+            "gnomad_gen_afr_af": "GnomAD Genome African AF",
+            "gnomad_gen_amr_af": "GnomAD Genome Latino AF",
+            "gnomad_gen_asj_af": "GnomAD Genome Ashkenazi Jewish AF",
+            "gnomad_gen_controls_af": "GnomAD Genome Controls AF",
+            "gnomad_gen_controls_afr_af": "GnomAD Genome African Controls AF",
+            "gnomad_gen_controls_amr_af": "GnomAD Genome Latino Controls AF",
+            "gnomad_gen_controls_an": "GnomAD Genome Controls AN",
+            "gnomad_gen_controls_asj_af": "GnomAD Genome Ashkenazi Jewish Controls AF",
+            "gnomad_gen_controls_eas_af": "GnomAD Genome Eas-Asian Controls AF",
+            "gnomad_gen_controls_fin_af": "GnomAD Genome Finnish Controls AF",
+            "gnomad_gen_controls_nfe_af": "GnomAD Genome Non-Finnish-European Controls AF",
+            "gnomad_gen_controls_nhemi": "GnomAD Genome Controls hemizygous",
+            "gnomad_gen_controls_nhet": "GnomAD Genome Controls heterozygous",
+            "gnomad_gen_controls_nhomalt": "GnomAD Genome Controls homozygous altered",
+            "gnomad_gen_eas_af": "GnomAD Genome East-Asian AF",
+            "gnomad_gen_filter": "GnomAD Genome Filter",
+            "gnomad_gen_fin_af": "GnomAD Genome Finnish AF",
+            "gnomad_gen_global_af": "GnomAD Genome Global AF",
+            "gnomad_gen_global_an": "GnomAD Genome Global AN",
+            "gnomad_gen_global_nhemi": "GnomAD Genome Global hemizygous",
+            "gnomad_gen_global_nhet": "GnomAD Genome Global heterozygous",
+            "gnomad_gen_global_nhomalt": "GnomAD Genome Global homozygous altered",
+            "gnomad_gen_nfe_af": "GnomAD Genome Non-Finnish-European AF",
+            "gnomade_30x_cov": "GnomAD Exome 30x Coverage",
+            "gnomade_mean_cov": "GnomAD Exome Mean Coverage",
+            "gnomadg_30x_cov": "GnomAD Genome 30x Coverage",
+            "gnomadg_mean_cov": "GnomAD Genome Mean Coverage",
+            "uk10k_af": "UK 10K AF",
+            "clinvar_clinrevstars": "ClinVar Revision Stars",
+            "clinvar_clinrevstat": "ClinVar Revision Stat",
+            "clinvar_clinsig": "ClinVar Clinical Significance",
+            "clinvar_disease": "ClinVar Disease",
+            "clinvar_disease_name": "ClinVar Disease Name",
+            "clinvar_id": "ClinVar ID",
+            "clinvar_patho_SNV_missense_count": "ClinVar P missense SNV",
+            "clinvar_patho_SNV_nonsense_count": "ClinVar P nonsense SNV",
+            "clinvar_patho_SNV_splice_count": "ClinVar P splice SNV",
+            "clinvar_patho_cnv_count": "ClinVar Pathological CNV",
+            "clinvar_patho_indel_9bp": "ClinVar Pathological INDEL 9bp",
+            "clinvar_patho_indel_count": "ClinVar Pathological INDEL",
+            "clinvar_pmid": "ClinVar PMID",
+            "clinvar_rs": "ClinVar RSID"
+    })
+    return(d)
+
 
 def get_classes_dict ():
     '''
@@ -31,6 +140,29 @@ def get_ACMG_classes_dict():
     })
     return(d)
 
+def get_inheritance_abbreviations_dict():
+    d = dict()
+    INH_ABBREVIATION_DICT = ({
+        "Autosomal recessive": "AR",
+        "Autosomal dominant": "AD",
+        "Digenic recessive": "DR",
+        "Somatic mutation": "SMU",
+        "Isolated cases": "IC",
+        "Multifactorial": "MF",
+        "Digenic dominant": "DD",
+        "Somatic mosaicism": "SMO",
+        "Mitochondrial": "MT",
+        "Pseudoautosomal dominant": "PD",
+        "Pseudoautosomal recessive": "PR",
+        "X-linked": "XL",
+        "X-linked recessive": "XLR",
+        "X-linked dominant": "XLD",
+        "Y-linked": "YL",
+        "Unknown": ""
+    })
+    for K,V in INH_ABBREVIATION_DICT.items():
+        d.update({ V: K })
+    return(d)
 
 def get_ACMG_strength_dict():
     d = ({
@@ -478,3 +610,90 @@ def update_sampleVAR_status( variant_name, sample_name, new_status ) :
         return( True )
     print( "update_sampleVAR_status(): !!! ERROR !!! updating status: {0}, for variant: {1}, in sample: {2}".format( new_status, variant_name, sample_name ))
     return( False )
+
+
+
+
+####################################
+###########   OMIMM DB    ##########
+####################################
+import csv
+def read_tsv_file( FILE ):
+  '''
+    TSV file needs to have header
+  '''
+  # data structures to hold the data
+  tsv_labels = []
+  tsv_data = []
+  with open( FILE, 'r') as tsv_in:
+      tsv_reader = csv.reader(tsv_in, delimiter='\t')
+      tsv_labels = tsv_reader.__next__()
+      for record in tsv_reader:
+          tsv_data.append(record)
+  return( tsv_labels, tsv_data )
+
+
+def get_gene_omim_dict( FILE ):
+    '''
+        this function utilizes read_tsv_file to get gene ID in OMIM
+    '''
+    tsv_labels, tsv_data = read_tsv_file( FILE )
+    ### create DICT
+    GENE_OMIM_DICT = dict()
+    for LINE in tsv_data:
+      GENE = LINE[3]
+      ID = LINE[0]
+      if GENE:
+        GENE_OMIM_DICT.update({ GENE : ID })
+    return( GENE_OMIM_DICT )
+
+
+def get_gene_omim_inheritance_dict( FILE ):
+    '''
+        this function utilizes read_tsv_file to get INHERITANCE in OMIM
+        - DB created with: OMIM_genemap2_coversion.py
+    '''
+    tsv_labels, tsv_data = read_tsv_file( FILE )
+    ### create DICT
+    GENE_OMIM_DICT = dict()
+    for LINE in tsv_data:
+      GENE = LINE[0]
+      DISEASE = LINE[1]
+      TYPE = LINE[2]
+      ID = LINE[3]
+      INH = LINE[4]
+      if GENE:
+          if GENE not in GENE_OMIM_DICT:
+              GENE_OMIM_DICT.update({
+                  GENE : {
+                    ID : {
+                        'DISEASE': DISEASE,
+                        'TYPE': TYPE,
+                        'INH': INH
+                        }
+                    }
+                  })
+          else:
+              GENE_OMIM_DICT[GENE].update({
+                    ID : {
+                        'DISEASE': DISEASE,
+                        'TYPE': TYPE,
+                        'INH': INH
+                        }
+                    })
+    return( GENE_OMIM_DICT )
+
+
+
+def get_gene_list_omim_inheritance_dict( FILE, GENE_NAME_LIST ):
+    '''
+        this is to return a OMIMM inheritance subdict with only genes of interest
+    '''
+    OMIM_DICT = get_gene_omim_inheritance_dict( FILE )
+    RESULT_DICT = dict()
+    for GENE_NAME in GENE_NAME_LIST:
+        GENE_DICT = ({ 'NA' : {'DISEASE': 'NA', 'TYPE': 'NA', 'INH': 'NA'} })
+        if GENE_NAME in OMIM_DICT:
+            GENE_DICT = OMIM_DICT[ GENE_NAME ]
+        RESULT_DICT.update({ GENE_NAME : GENE_DICT })
+    return( RESULT_DICT )
