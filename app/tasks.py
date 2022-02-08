@@ -19,7 +19,6 @@ import datetime
 app = create_app()
 app.app_context().push()
 
-
 def _set_task_progress(progress):
     job = get_current_job()
     if job:
@@ -49,7 +48,7 @@ def send_message_notification( user_id, body ):
 
 
 # app.tasks.analyzeVCF_task( user_id = 1, file_path = 'upload/merged.idter_M.norm.PASS.filtered.head1k.VEPoutput.vcf', known_dict = known_dict, url = current_app.config['REDIS_URL'], database = 3, pwd = None )
-def analyzeVCF_ASILO_task( user_id, file_path, known_dict, url = None, database = 2, pwd = None ):
+def analyzeVCF_ASILO_task( user_id, file_path, known_dict, url = None, database = 2, pwd = None, URL_RESULTS = None ):
     if not url:
         url = current_app.config['REDIS_URL']
     try:
@@ -119,7 +118,8 @@ def analyzeVCF_ASILO_task( user_id, file_path, known_dict, url = None, database 
             print("analyzeVCF_task() : 5. insertDICT() genes (n. {})".format(len(gene_dict)))
             gi = redis_functions.redis_dict_insert( url = url, database = database, d_dict = gene_dict, key_prefix = 'gen', pwd = pwd )
             ### and notify user about work completed
-            send_message_notification( user_id, "your VCF is analyzed!" )
+            MESSAGE = "Dear " + user.server_username +  ", your VCF is now analyzed! Take a look at it (click Result above)"
+            send_message_notification( user_id, MESSAGE )
             _set_task_progress(100)
         else:
             _set_task_progress(100)
@@ -128,7 +128,7 @@ def analyzeVCF_ASILO_task( user_id, file_path, known_dict, url = None, database 
         _set_task_progress(100)
         app.logger.error( 'Unhandled exception', exc_info = sys.exc_info() )
 
-def analyzeVCF_task( user_id, file_path, known_dict, url = None, database = 2, pwd = None ):
+def analyzeVCF_task( user_id, file_path, known_dict, url = None, database = 2, URL_RESULTS = None, pwd = None ):
     if not url:
         url = current_app.config['REDIS_URL']
     try:
@@ -165,7 +165,9 @@ def analyzeVCF_task( user_id, file_path, known_dict, url = None, database = 2, p
             print("analyzeVCF_task() : 5. insertDICT() genes (n. {})".format(len(gene_dict)))
             gi = redis_functions.redis_dict_insert( url = url, database = database, d_dict = gene_dict, key_prefix = 'gen', pwd = pwd )
             ### and notify user about work completed
-            send_message_notification( user_id, "your VCF is analyzed!" )
+            MESSAGE = "Dear" + user.server_username +  ", your VCF is now analyzed! Take a look at it here: " + URL_RESULTS
+            send_message_notification( user_id, MESSAGE )
+            print("analyzeVCF_task() : 6. mail sent! ;)")
             _set_task_progress(100)
         else:
             _set_task_progress(100)

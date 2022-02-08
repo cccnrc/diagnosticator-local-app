@@ -35,6 +35,7 @@ class User( UserMixin, db.Model ):
     project_vcf_filename = db.Column(db.String(256))
     project_variant_sent = db.Column(db.Boolean, default=False)
     last_message_read_time = db.Column(db.DateTime)
+    last_case_seen = db.Column(db.String(140), default=None)
     messages_received = db.relationship('Message',
                                         foreign_keys='Message.recipient_id',
                                         backref='recipient', lazy='dynamic')

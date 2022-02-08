@@ -17,6 +17,7 @@ RUN venv/bin/pip install gunicorn pymysql
 RUN mkdir DB
 
 COPY app app
+COPY DB/OMIM DB/OMIM
 COPY upload upload
 COPY variant_dependencies variant_dependencies
 COPY main.py config.py boot.sh ./

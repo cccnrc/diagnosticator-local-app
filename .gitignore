@@ -15,6 +15,7 @@ upload/*.H-samples
 upload/*.FILTERED.vcf
 README-VCF.md
 README-APP_DEVELOPMENT.md
+README-LOCAL-DEV.md
 logs/*
 docker.README.md
 docker-compose-OLD.yml

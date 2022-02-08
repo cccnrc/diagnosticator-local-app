@@ -46,10 +46,36 @@
         table-layout: fixed;
     }
 
+    div.description-container {
+      border: 0px solid red;
+      height: 50px;
+      font-weight: normal;
+      text-align: center;
+      font-size: 100%;
+    }
+
+    div#testText {
+      display: none;
+      font-weight: bold;
+      font-size: 120%;
+    }
+
 </style>
 
 
-<div style="display: inline-block; float: right; " >
+<div style="display: inline-block; float: left;" >
+  <a href="{{ LAST_CASE_URL }}">
+    <button class="btn btn-info" style="border: 1px solid #308eff;">
+      {% if LAST_CASE_URL %}
+        {{ current_user.last_case_seen }} <stream style="font-size: 80%;">(back)</stream>
+      {% else %}
+        Back
+      {% endif %}
+    </button>
+  </a>
+</div>
+
+<div style="display: inline-block; float: right;" >
   <a href="{{ url_for('main.patient_result' )}}">
     <button class="btn btn-info" style="border: 1px solid #308eff;">
       Samples Main Page
@@ -138,9 +164,9 @@
           <!-- this is to show the button description -->
           <tr>
             <td colspan="2">
-            <div style='font-weight: normal; text-align: center; font-size: 100%;'>
-            <stream style="color: grey;">Button description (point mouse on button to appear)</stream>:
-            <div id='testText' style='display: none; font-weight: bold; font-size: 120%'>
+            <div class="description-container">
+              <stream style="color: grey;">Button description (point mouse on button to appear)</stream>:
+              <div id='testText'></div>
             </div>
             </td>
           </tr>
@@ -159,11 +185,11 @@
             <td class="ui-helper-center">
                 change sample variant status:<br>
                 {% for c, c_dict in classes_dict.items() %}
-                  <a class="box" id="{{ c_dict[ 'description' ] }}" href="{{ url_for( 'main.change_variant_sample_status', project_name = project_name, sample_name = k, variant_name = variant_name, new_status = c ) }}">
-                    <button onclick="serverConfirmation( sample_name = '{{ k }}', variant_name = '{{ variant_name }}', new_status = '{{ c }}' )" class="btn btn-{{c_dict['btn-class']}}" style="{{c_dict['btn-style']}}">
-                      {{ c_dict['display'] }}
-                    </button>
-                  </a>
+                    <a class="box" id="{{ c_dict[ 'description' ] }}" href="{{ url_for( 'main.change_variant_sample_status', project_name = project_name, sample_name = k, variant_name = variant_name, new_status = c ) }}">
+                      <button onclick="serverConfirmation( sample_name = '{{ k }}', variant_name = '{{ variant_name }}', new_status = '{{ c }}' )" class="btn btn-{{c_dict['btn-class']}}" style="{{c_dict['btn-style']}}">
+                        {{ c_dict['display'] }}
+                      </button>
+                    </a>
                 {% endfor %}
             </td>
           </tr>

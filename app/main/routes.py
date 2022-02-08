@@ -255,7 +255,7 @@ def analyzeVCF( filename ):
     if current_user.get_task_in_progress('analyzeVCF_task'):
         flash('An analyze VCF task is currently in progress. Wait it to finish...', 'warning')
     else:
-        current_user.launch_task( 'analyzeVCF_task', 'Analyzing VCF {}...'.format( filename ), file_path, known_dict, url = current_app.config['REDIS_URL'], database = 2 )
+        current_user.launch_task( 'analyzeVCF_task', 'Analyzing VCF {}...'.format( filename ), file_path, known_dict, url = current_app.config['REDIS_URL'], database = 2, URL_RESULTS = str(url_for('main.patient_result')) )
         db.session.commit()
     return( redirect( url_for( 'main.upload' ) ) )
 
@@ -334,7 +334,8 @@ def analyzeVCF_ASILO( filename ):
     if current_user.get_task_in_progress('analyzeVCF_ASILO_task'):
         flash('An analyze VCF task is currently in progress. Wait it to finish...', 'warning')
     else:
-        current_user.launch_task( 'analyzeVCF_ASILO_task', 'Analyzing VCF {}...'.format( filename ), file_path, known_dict, url = current_app.config['REDIS_URL'], database = 2 )
+        current_user.launch_task( 'analyzeVCF_ASILO_task', 'Analyzing VCF {}...'.format( filename ), file_path, known_dict, url = current_app.config['REDIS_URL'], database = 2, URL_RESULTS = str(url_for('main.patient_result')) )
+        current_user.last_case_seen = None
         db.session.commit()
     return( redirect( url_for( 'main.index' ) ) )
 
@@ -357,9 +358,13 @@ def patient_result():
     sample_dict = redis_functions.redis_dict_return( current_app.config['REDIS_URL'], 2,  'sam' )
     ### get number of P/LP variants for each sample
     sampleHTMLdict = diagnosticator_rendering_functions.getSamplesHTMLdict( sample_dict, variant_dict  )
+    LAST_CASE_URL = None
+    if current_user.last_case_seen:
+        LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )
     return( render_template('patient_result_DXcator.html',
                                 title='Sample Result',
-                                sampleHTMLdict = sampleHTMLdict
+                                sampleHTMLdict = sampleHTMLdict,
+                                LAST_CASE_URL = LAST_CASE_URL
                                 ))
 
 
@@ -409,6 +414,9 @@ def patient_page( sample_name ):
         sampleVar_dict[VAR]['CHARS'].update({ 'gene_OMIM_inh': 'NA' })
         if sampleVar_dict[VAR]['CHARS']['genename']:
             sampleVar_dict[VAR]['CHARS'].update({ 'gene_OMIM_inh': GENES_INH_DICT_CORRECTED[sampleVar_dict[VAR]['CHARS']['genename']] })
+    ### store last case seen
+    current_user.last_case_seen = sample_name
+    db.session.commit()
     return( render_template('patient_page_DXcator.html',
                                 title = sample_name,
                                 sample_dict = sample_dict,
@@ -529,12 +537,16 @@ def variant_page( variant_name ):
     REORDERED_DICT = dict()
     for KEY in VARIANT_DICT_ORDER:
         REORDERED_DICT.update({ KEY: variant_dict[KEY] })
+    LAST_CASE_URL = None
+    if current_user.last_case_seen:
+        LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )
     return( render_template('variant_page_DXcator_v2.html',
                                 title = variant_name,
                                 variant_name =variant_name,
                                 variant_dict = REORDERED_DICT,
                                 sampleVARstatus_dict = sampleVARstatus_dict,
-                                LINKS_DICT = LINKS_DICT
+                                LINKS_DICT = LINKS_DICT,
+                                LAST_CASE_URL = LAST_CASE_URL
                                 ))
 
 
@@ -641,9 +653,13 @@ def gene_page( gene_name ):
         this is the function to display single gene variants
     '''
     gene_dict = redis_functions.redis_dict_return( url = current_app.config['REDIS_URL'], database = 2, key_prefix = 'gen', key_value = gene_name )
+    LAST_CASE_URL = None
+    if current_user.last_case_seen:
+        LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )
     return( render_template( 'gene_page_DXcator.html',
                                 gene_name = gene_name,
-                                gene_dict = gene_dict
+                                gene_dict = gene_dict,
+                                LAST_CASE_URL = LAST_CASE_URL
                 ))
 
 
@@ -658,8 +674,12 @@ def gene_result( ):
         this is the function to display all gene results
     '''
     geneHTMLdict = diagnosticator_rendering_functions.get_all_genes_dict( )
+    LAST_CASE_URL = None
+    if current_user.last_case_seen:
+        LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )
     return( render_template( 'gene_result_DXcator.html',
-                                geneHTMLdict = geneHTMLdict
+                                geneHTMLdict = geneHTMLdict,
+                                LAST_CASE_URL = LAST_CASE_URL
                 ))
 
 
