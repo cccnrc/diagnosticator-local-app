@@ -82,17 +82,18 @@ def check_server_user( username, password ):
                     try:
                         os.mkdir(DIAGNOSTICATOR_LOCAL_LIB)
                     except:
-                        flash('can not store token (no {} DIR)'.format(DIAGNOSTICATOR_LOCAL_LIB), 'warning')
+                        pass
+                        # flash('can not store token (no {} DIR)'.format(DIAGNOSTICATOR_LOCAL_LIB), 'warning')
                 if os.path.isdir(DIAGNOSTICATOR_LOCAL_LIB):
                     STORED_CREDENTIALS_FILE = os.path.join(DIAGNOSTICATOR_LOCAL_LIB, 'credentials.json')
                 else:
-                    STORED_CREDENTIALS_FILE = os.path.join(current_app.config['BASEDIR'], 'credentials.json')
+                    STORED_CREDENTIALS_FILE = os.path.join(current_app.config['BASEDIR'], 'DB', 'credentials.json')
                 try:
                     EXP_CORR = datetime.strptime(r.json()['exp'], '%m/%d/%y %H:%M:%S:%f').strftime('%m/%d/%y %H:%M:%S')
                     print(EXP_CORR)
                     with open( STORED_CREDENTIALS_FILE, 'w') as f:
                         json.dump({ "token": r.json()['token'], "exp": EXP_CORR }, f)
-                    flash('token stored locally', 'success')
+                    flash('token stored locally ({})'.format(STORED_CREDENTIALS_FILE), 'success')
                 except:
                     flash('can not store token', 'warning')
                 return redirect( next )

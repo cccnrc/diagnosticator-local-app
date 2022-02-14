@@ -34,7 +34,7 @@ def authenticate_on_server( ):
         if os.path.isfile(os.path.join(DIAGNOSTICATOR_LOCAL_LIB, 'credentials.json')):
             STORED_CREDENTIALS_FILE = os.path.join(DIAGNOSTICATOR_LOCAL_LIB, 'credentials.json')
         else:
-            STORED_CREDENTIALS_FILE = os.path.join(current_app.config['BASEDIR'], 'credentials.json')
+            STORED_CREDENTIALS_FILE = os.path.join(current_app.config['BASEDIR'], 'DB', 'credentials.json')
         if os.path.isfile(STORED_CREDENTIALS_FILE):
             CREDENTIALS = json.load(open(STORED_CREDENTIALS_FILE))
             TOKEN = CREDENTIALS['token']
