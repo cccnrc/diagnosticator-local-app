@@ -5,14 +5,30 @@ source venv/bin/activate
 sleep 0
 while true; do
     ### this is to avoid migrations conflicts if DB already exists
-    DB_EXISTENCE=$( sqlite3 DB/app.db "SELECT EXISTS (SELECT * FROM sqlite_master WHERE type='table' AND name='user');" )
+    DB_EXISTENCE=$( sqlite3 /home/diagnosticator/DB/app.db "SELECT EXISTS (SELECT * FROM sqlite_master WHERE type='table' AND name='user');" )
     if [ "$DB_EXISTENCE" -ne 0 ]; then
-      echo "SQL databse exists";
+      echo " -> SQL databse exists";
+      ### this is to avoid the revision mismatch
+      DB_REVISION=$( sqlite3 /home/diagnosticator/DB/app.db "SELECT version_num FROM alembic_version;" )
+      sqlite3 /home/diagnosticator/DB/app.db "DROP TABLE IF EXISTS alembic_version;"
+      if [ ! -z $DB_REVISION ]; then
+        echo "  --> revision: ${DB_REVISION} DROPPED";
+      fi
     else
-      echo "creating SQL databse ...";
-      flask db init
+      echo " -> creating SQL databse ...";
     fi
+    ### check migrations
+    if [ ! -d /home/diagnosticator/migrations ]; then
+      echo " -> migrations does not exists, initiating DB ..."
+      flask db init
+    else
+      echo " -> migrations exists, skipping DB init ..."
+    fi
+    ### the rest should simply have no effect in case it already exists
     flask db migrate
+    if [ "$DB_EXISTENCE" -ne 0 ]; then
+      flask db stamp head
+    fi
     flask db upgrade
     if [[ "$?" == "0" ]]; then
         break

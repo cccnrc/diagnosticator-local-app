@@ -358,6 +358,7 @@ def patient_result():
     sample_dict = redis_functions.redis_dict_return( current_app.config['REDIS_URL'], 2,  'sam' )
     ### get number of P/LP variants for each sample
     sampleHTMLdict = diagnosticator_rendering_functions.getSamplesHTMLdict( sample_dict, variant_dict  )
+    ### pass last case seen
     LAST_CASE_URL = None
     if current_user.last_case_seen:
         LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )
@@ -537,6 +538,7 @@ def variant_page( variant_name ):
     REORDERED_DICT = dict()
     for KEY in VARIANT_DICT_ORDER:
         REORDERED_DICT.update({ KEY: variant_dict[KEY] })
+    ### pass last_case_seen
     LAST_CASE_URL = None
     if current_user.last_case_seen:
         LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )
@@ -653,6 +655,7 @@ def gene_page( gene_name ):
         this is the function to display single gene variants
     '''
     gene_dict = redis_functions.redis_dict_return( url = current_app.config['REDIS_URL'], database = 2, key_prefix = 'gen', key_value = gene_name )
+    ### pass last case seen
     LAST_CASE_URL = None
     if current_user.last_case_seen:
         LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )

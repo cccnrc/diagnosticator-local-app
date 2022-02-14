@@ -20,3 +20,4 @@ logs/*
 docker.README.md
 docker-compose-OLD.yml
 .flaskenv
+credentials.json

@@ -1,11 +1,12 @@
 from app.models import User
 from app import db
 from flask_login import login_user, logout_user, current_user, login_required
-from flask import flash, request, redirect
+from flask import flash, request, redirect, jsonify
 from flask import current_app, url_for
 import requests
 from datetime import datetime, timedelta
-
+import os
+import json
 
 
 def check_create_local_user( username ):
@@ -53,8 +54,6 @@ def check_server_token_expiration():
     return( False )
 
 
-
-
 def check_server_user( username, password ):
     '''
         this is to confirm with central server that exists an user
@@ -69,7 +68,7 @@ def check_server_user( username, password ):
     ### send token request to backend
     auth = requests.auth.HTTPBasicAuth( username, password )
     server_url = current_app.config['SERVER_ADDRESS']
-    r = requests.post( '{0}/api/tokens'.format(server_url), auth = auth )
+    r = requests.post( '{0}/api/long_tokens'.format(server_url), auth = auth )
     if r:
         if 'token' in r.json() and 'exp' in r.json():
             if r.json()['token']:
@@ -77,6 +76,25 @@ def check_server_user( username, password ):
                 user.server_token_expiration = datetime.strptime(r.json()['exp'], '%m/%d/%y %H:%M:%S:%f')
                 db.session.commit()
                 # flash( 'Stored token: {0}, exp: {1}, for user: {2}'.format(r.json()['token'], datetime.utcnow() + timedelta(seconds = token_expiration_server), username), 'success')
+                ### try store credentials locally as well
+                DIAGNOSTICATOR_LOCAL_LIB = '/usr/lib/diagnosticator'
+                if not os.path.isdir(DIAGNOSTICATOR_LOCAL_LIB):
+                    try:
+                        os.mkdir(DIAGNOSTICATOR_LOCAL_LIB)
+                    except:
+                        flash('can not store token (no {} DIR)'.format(DIAGNOSTICATOR_LOCAL_LIB), 'warning')
+                if os.path.isdir(DIAGNOSTICATOR_LOCAL_LIB):
+                    STORED_CREDENTIALS_FILE = os.path.join(DIAGNOSTICATOR_LOCAL_LIB, 'credentials.json')
+                else:
+                    STORED_CREDENTIALS_FILE = os.path.join(current_app.config['BASEDIR'], 'credentials.json')
+                try:
+                    EXP_CORR = datetime.strptime(r.json()['exp'], '%m/%d/%y %H:%M:%S:%f').strftime('%m/%d/%y %H:%M:%S')
+                    print(EXP_CORR)
+                    with open( STORED_CREDENTIALS_FILE, 'w') as f:
+                        json.dump({ "token": r.json()['token'], "exp": EXP_CORR }, f)
+                    flash('token stored locally', 'success')
+                except:
+                    flash('can not store token', 'warning')
                 return redirect( next )
     flash( "ERROR, be sure you typed your SERVER password correctly", 'danger')
     # flash( "server response: {}".format( r.text ), 'danger')
