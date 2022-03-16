@@ -19,6 +19,7 @@ import requests
 from uuid import getnode as get_mac
 from app.variant_functions import send_local_variants, get_known_variants, get_all_known_variants, get_report_statuses, send_local_var, get_server_new_messages_dict
 from app.main.forms import SearchForm, FilterForm
+from flask_paginate import Pagination, get_page_args
 
 
 ######################################################################
@@ -354,18 +355,47 @@ def patient_result():
     '''
         this is the function to display patients results
     '''
-    variant_dict = redis_functions.redis_dict_return( current_app.config['REDIS_URL'], 2,  'var' )
-    sample_dict = redis_functions.redis_dict_return( current_app.config['REDIS_URL'], 2,  'sam' )
+    ### pagination
+    page = int(request.args.get('page', 1))
+    per_page = 5
+    start_page = (page - 1) * per_page
+    end_page = (page) * per_page
+    # search
+    search = False
+    q = request.args.get('q')
+    if q:
+        search = True
+
+    ### get dictionaries
+    sample_dict_keys = redis_functions.redis_keys_return( current_app.config['REDIS_URL'], 2,  'sam' )
+    samples_keys_to_render = sample_dict_keys[start_page:end_page]
+    sample_dict = redis_functions.redis_dict_return_key_list( url = current_app.config['REDIS_URL'], database = 2, key_prefix = 'sam', keys_list = samples_keys_to_render )
+    # get samples variant names list to extract only those (speed up)
+    sample_var_keys = []
+    for single_sample_name in samples_keys_to_render:
+        single_sample_var_keys = list(sample_dict[single_sample_name]['varGT'].keys())
+        sample_var_keys.extend(single_sample_var_keys)
+    sample_var_keys = sorted(sample_var_keys)
+    # extract only varinats harbored in those samples
+    variant_dict = redis_functions.redis_dict_return_key_list( current_app.config['REDIS_URL'], 2, key_prefix = 'var', keys_list = sample_var_keys )
     ### get number of P/LP variants for each sample
     sampleHTMLdict = diagnosticator_rendering_functions.getSamplesHTMLdict( sample_dict, variant_dict  )
+    # create pagination on sample and variant dict
+    pagination = Pagination(page=page, per_page=per_page, offset=start_page,
+                           total=len(sample_dict_keys), css_framework='bootstrap3',
+                           search=search)
+
     ### pass last case seen
     LAST_CASE_URL = None
     if current_user.last_case_seen:
         LAST_CASE_URL = url_for('main.patient_page', sample_name = current_user.last_case_seen )
+
+
     return( render_template('patient_result_DXcator.html',
                                 title='Sample Result',
                                 sampleHTMLdict = sampleHTMLdict,
-                                LAST_CASE_URL = LAST_CASE_URL
+                                LAST_CASE_URL = LAST_CASE_URL,
+                                pagination=pagination
                                 ))
 
 
@@ -379,13 +409,33 @@ def patient_page( sample_name ):
     '''
         this is the function to display single patient page
     '''
+    ### pagination
+    page = int(request.args.get('page', 1))
+    per_page = 10
+    start_page = (page - 1) * per_page
+    end_page = (page) * per_page
+    # search
+    search = False
+    q = request.args.get('q')
+    if q:
+        search = True
+
     sample_dict = redis_functions.redis_dict_return( url = current_app.config['REDIS_URL'], database = 2, key_prefix = 'sam', key_value = sample_name )
     sample_dict = diagnosticator_rendering_functions.check_status_in_dict( sample_dict )
     sampleVar_dict = diagnosticator_rendering_functions.getSampleVariants( sample_dict )
     sampleVar_dict = diagnosticator_rendering_functions.orderDictByScore( sampleVar_dict )
+    # extract only variants per page
+    sampleVar_dict_keys_to_render = list( sampleVar_dict.keys() )[start_page:end_page]
+    # create pagination on variant dict
+    pagination = Pagination(page=page, per_page=per_page, offset=start_page,
+                           total=len(sampleVar_dict), css_framework='bootstrap3',
+                           search=search)
+    # extract only subdict to render
+    sampleVar_dict_to_render = {k:sampleVar_dict[k] for k in sampleVar_dict_keys_to_render if k in sampleVar_dict}
+
     ### extract possible OMIM inheritance methods for the genes
     GENE_LIST = []
-    for VAR in sampleVar_dict:
+    for VAR in sampleVar_dict_to_render:
         if sampleVar_dict[VAR]['CHARS']['genename']:
             GENE = sampleVar_dict[VAR]['CHARS']['genename']
             GENE_LIST.append(GENE)
@@ -411,7 +461,7 @@ def patient_page( sample_name ):
                         GENE_INH.append(INH)
             GENE_INH_CORRECTED = ",".join( map( str, GENE_INH ))
             GENES_INH_DICT_CORRECTED.update({ GENE: GENE_INH_CORRECTED })
-    for VAR in sampleVar_dict:
+    for VAR in sampleVar_dict_to_render:
         sampleVar_dict[VAR]['CHARS'].update({ 'gene_OMIM_inh': 'NA' })
         if sampleVar_dict[VAR]['CHARS']['genename']:
             sampleVar_dict[VAR]['CHARS'].update({ 'gene_OMIM_inh': GENES_INH_DICT_CORRECTED[sampleVar_dict[VAR]['CHARS']['genename']] })
@@ -421,8 +471,9 @@ def patient_page( sample_name ):
     return( render_template('patient_page_DXcator.html',
                                 title = sample_name,
                                 sample_dict = sample_dict,
-                                sampleVar_dict = sampleVar_dict,
-                                sample_name = sample_name
+                                sampleVar_dict = sampleVar_dict_to_render,
+                                sample_name = sample_name,
+                                pagination = pagination
                                 ))
 
 

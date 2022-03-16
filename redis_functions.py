@@ -87,6 +87,40 @@ def redis_dict_return( url, database, key_prefix, key_value = None, pwd = None )
     return( None )
 
 
+
+def redis_dict_return_key_list( url, database, key_prefix, keys_list = None, pwd = None ):
+    '''
+        this returns the DICT assocaited with specific key prefix
+    '''
+    r = redis_connect( url, database, pwd )
+    d = {}
+    dd = {}
+    ddd = {}
+    search_string = "{}:*".format(key_prefix)
+    for key_value in keys_list:
+        if key_value:
+            search_string = "{0}:{1}".format(key_prefix, key_value)
+        if r:
+            key_list = r.scan_iter(search_string)
+            for k in key_list:
+                d.update({ k : r.hgetall(k) })
+            for k in d:
+                key_name = k.decode('utf-8').replace('{}:'.format(key_prefix), '')
+                sub_d = {}
+                for kk,v in d[k].items():
+                    subdict_k, subdict_v = kk.decode('utf-8').split(':',1)
+                    if subdict_k in sub_d:
+                        sub_d[subdict_k].update({ subdict_v : json.loads(v) })
+                    else:
+                        sub_d.update({ subdict_k : { subdict_v : json.loads(v) } })
+                dd.update({ key_name : sub_d })
+            if key_value:
+                dd = dd[ key_value ]
+        ddd.update({ key_value : order_dict( dd ) })
+    dr = order_dict( ddd )
+    return( dr )
+
+
 def order_dict(d):
     '''
         this is to order the returned dict
@@ -147,7 +181,7 @@ def redis_keys_return( url, database, key_prefix, pwd = None ):
         key_list = r.scan_iter(search_string)
         if key_list:
             n_list = [ k.decode('utf-8').replace( "{}:".format(key_prefix), '' ) for k in key_list ]
-            return( n_list )
+            return( sorted(n_list) )
     return( None )
 
 

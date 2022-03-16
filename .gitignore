@@ -1,5 +1,8 @@
 venv
+venv39
+venv391
 DB/app.db
+DB/credentials.json
 __pycache__
 TIME-ANALYSIS
 migrations
